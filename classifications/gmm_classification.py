@@ -2,6 +2,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 import numpy as np
+import preprocessing
 
 from sklearn import datasets
 from sklearn.mixture import GaussianMixture
@@ -10,25 +11,38 @@ from sklearn.model_selection import StratifiedKFold
 import pandas as pd
 
 
-data = pd.read_csv('variants_continous_encoded.csv')
-#data = pd.read_csv('variants_continous_encoded_only_target.csv') spherical train: 15.263954997836434 spherical test: 14.993523316062177 diag train: 15.253137170056252 diag test: 14.993523316062177 tied train: 36.7914322803981 tied test: 36.36658031088083 full train: 0.8437905668541757 full test: 0.8743523316062176
+#data = pd.read_csv('variants_encoded.csv') # indexli hali daha yüksek doğruluk veriyor???
+data = pd.read_csv('variants_encoded_NoIndex.csv') # indexli hali daha yüksek doğruluk veriyor???
+##data = pd.read_csv('variants_continous_encoded_only_target.csv')
+
+
+#pp=preprocessing.Preprocess('variants_encoded_NoIndex.csv') #Scaling'de başarımı oldukça düşürdü
+#data = pp.getData()
+#columns_to_be_scaled = list(data.columns)
+#columns_to_be_scaled.remove('rcv.clinical_significance')
+#pp.scale(columns_to_be_scaled)
+#data = pp.getData()
+
+
+
 target = data.loc[:,data.columns =='rcv.clinical_significance'].to_numpy()
 data = data.loc[:, data.columns != 'rcv.clinical_significance'].to_numpy()
+
 
 # Break up the dataset into non-overlapping training (75%) and testing
 # (25%) sets.
 skf = StratifiedKFold(n_splits=4)
 # Only take the first fold.
 train_index, test_index = next(iter(skf.split(data, target)))
-#
-#
+
+
 X_train = data[train_index]
 y_train = target[train_index].reshape(-1)
 X_test = data[test_index]
 y_test = target[test_index].reshape(-1)
 xtr = X_train
 xte = X_test
-#
+
 n_classes = len(np.unique(y_train))
 
 # Try GMMs using different types of covariances.

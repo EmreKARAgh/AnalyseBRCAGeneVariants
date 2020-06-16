@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
+from copy import deepcopy
 class Preprocess:
     def __init__(self, data_path_c=None,read_dtype=None,autoImpute=True, autoEliminateNullColumns=True):
         try:
@@ -22,6 +23,9 @@ class Preprocess:
             print('Can not print')
     def impute(self,cols=None,strategy_n='mean',strategy_s='most_frequent',fill_value_c = None):
         try:
+            if (not self.data.isnull().sum().any()):
+                print('Null Values Not Found')
+                return
             if(cols == None):
                 cols=self.data
             else:
@@ -30,15 +34,19 @@ class Preprocess:
             imputer = SimpleImputer(missing_values=np.NaN , strategy=strategy_n)
             imputer_s = SimpleImputer(missing_values=np.NaN , strategy= strategy_s, fill_value=fill_value_c)
             for column_name in cols:
-                column = self.data[[column_name]]
-                try:
-                    column_temp = imputer.fit_transform(column)
-                except AttributeError as error:
-                    if str(error) == '\'DataFrame\' object has no attribute \'dtype\'':
+                if self.data[column_name].isnull().values.any():
+                    column = self.data[[column_name]]
+                    try:
+                        column_temp = imputer.fit_transform(column)
+                    except (AttributeError,ValueError):
                         column_temp = imputer_s.fit_transform(column)
-                self.__updateColumn(column_temp,column_name)
-        except:
-            print('Can not impute')
+    #                except Exception as ex:
+    #                    template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+    #                    message = template.format(type(ex).__name__, ex.args)
+    #                    print(message)
+                    self.__updateColumn(column_temp,column_name)
+        except Exception as exc:
+            print('Can not impute', exc)
     def dropCols(self,cols):
         try:
             cols = self.getCols(cols)
@@ -49,23 +57,27 @@ class Preprocess:
     def encode(self,cols=None,encoder = 'LabelEncoder'):
         try:
             if(cols == None):
-#                cols=self.data.loc[:, self.data.columns != 'rcv.clinical_significance']
-                 cols = self.data
+                 acceptable_dtypes = ['int64','float64']
+                 cat_features_name = [col for col in self.data if self.data[col].dtypes.name not in acceptable_dtypes] #Categoric Feature'ların adlarını tutan dizi.
+                 cat_features_name = cat_features_name[:-1] #Target sınıf çıkarılır
+                 cols = self.getCols(cat_features_name)
             else:
                 cols = self.getCols(cols)
             if encoder == 'LabelEncoder':
                 from sklearn.preprocessing import LabelEncoder
                 le = LabelEncoder()
                 for column_name in cols:
-                    if str(self.data[column_name].dtypes) != 'float64':
-                        column = self.data[column_name].values.ravel()
-                        column_temp = le.fit_transform(column)
-                        self.__updateColumn(column_temp, column_name)
-                        self.data[column_name] = self.data[column_name].astype(np.float64)
+                    column = self.data[column_name].values.ravel()
+                    column_temp = le.fit_transform(column)
+                    self.__updateColumn(column_temp, column_name)
+                    self.data[column_name] = self.data[column_name].astype(np.float64)
             elif encoder == 'OneHotEncoder':
                 print('Not implemented')
-        except:
-            print('Can not encode')
+        except Exception as ex:
+            print('Can not Encode')
+            template = "An exception of type {0} occurred. Arguments:\n{1!r}"
+            message = template.format(type(ex).__name__, ex.args)
+            print(message)
     def __updateColumn(self,arr,arr_name):
         new_column = pd.Series(arr.ravel(), name=arr_name)
         self.data.update(new_column)
@@ -140,10 +152,13 @@ class Preprocess:
             return self.data[cols]
     def dropRows(self,rows):
         self.data.drop(rows, inplace = True)
-    def eliminateNullColumns(self,percentage=0.73):
+    def eliminateNullColumns(self,percentage=0.20):
         self.data = self.data.loc[:, self.data.isnull().mean() < percentage]
     def getData(self):
-        return self.data
+        return deepcopy(self.data)
+    def setData(self, data):
+        del self.data
+        self.data = data
         
 #obj = Preprocess('veriler.csv', autoImpute=True) #AutoImpute : True
 ##obj.impute([3,4], strategy_s='const', fill_value_c='e')

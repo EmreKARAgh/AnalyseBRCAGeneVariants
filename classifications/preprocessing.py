@@ -37,8 +37,8 @@ class Preprocess:
                     if str(error) == '\'DataFrame\' object has no attribute \'dtype\'':
                         column_temp = imputer_s.fit_transform(column)
                 self.__updateColumn(column_temp,column_name)
-        except:
-            print('Can not impute')
+        except Exception as exc:
+            print('Can not impute', exc)
     def dropCols(self,cols):
         try:
             cols = self.getCols(cols)
