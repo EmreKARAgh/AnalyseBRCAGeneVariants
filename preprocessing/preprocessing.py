@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Created on Sun May  5 23:09:51 2020
+
+@author: EmreKARA
+"""
 import pandas as pd
 import numpy as np
 from copy import deepcopy
@@ -159,14 +164,3 @@ class Preprocess:
     def setData(self, data):
         del self.data
         self.data = data
-        
-#obj = Preprocess('veriler.csv', autoImpute=True) #AutoImpute : True
-##obj.impute([3,4], strategy_s='const', fill_value_c='e')
-##cols = obj.dropCols([0,2])
-##Impute first!
-##obj.encode(['ulke','cinsiyet'])
-#obj.encode([0,4])
-#obj.scale()
-#obj.bWElimination([1])
-#x_train, x_test, y_train, y_test = obj.trainTestSplitting([1])
-#obj.print()

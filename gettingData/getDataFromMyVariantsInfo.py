@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
+"""
+Created on Sun March  15 06:12:22 2020
+
+@author: EmreKARA
+"""
 import json
 import pymongo
 import myDB
 import requests 
 
-
+#åDownloading Data from myvariant.info by web API
 def downloadData():
     URL = "http://myvariant.info/v1/query"
     #params = 'q=dbsnp.gene.symbol:BRCA*&fields=dbsnp.gene.symbol&fetch_all=TRUE'#
@@ -30,20 +35,27 @@ def downloadData():
                 break;
     data = data[:-1]
     return data
+
+#Write json from pandas dataframe
 def writeJson(data, path='databases/variantsdata.json'):
     with open(path, "w") as outfile:
         text = json.dumps(data)
         outfile.write(text)
+#Read json file from local
 def readJson():
     with open('databases/variantsdata.json', 'r') as openfile: 
         data = json.load(openfile)
     return data
+
+#Write pandas dataframe into MongoDB database
 def writeMongoDB(data,database='myvariantsinfo', collection='variants'):
     myclient = pymongo.MongoClient("mongodb://localhost:27017/") 
     mydb = myclient[database] #db
     mycol = mydb[collection] #collection
     y = mycol.insert_many(data)
     return y
+
+#Write pandas dataframe into SQLite database
 def write2Sqlite(data):
 
     db = myDB.sqlite()

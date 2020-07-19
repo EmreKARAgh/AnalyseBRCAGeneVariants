@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Created on Sun May  1 17:49:34 2020
+
+@author: EmreKARA
+"""
 import pandas as pd
 import json
 import copy
